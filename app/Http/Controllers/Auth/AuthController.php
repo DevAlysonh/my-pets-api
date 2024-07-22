@@ -21,7 +21,15 @@ class AuthController extends Controller
 
 		$token = auth('api')->login($user);
 
-		return $this->respondWithToken($token);
+		return response()->json(
+			[
+				'message' => 'User Created.',
+				'access_token' => $token,
+				'token_type' => 'bearer',
+				'expires_in' => auth('api')->factory()->getTTL() * 60
+			],
+			201
+		);
 	}
 
     public function login()

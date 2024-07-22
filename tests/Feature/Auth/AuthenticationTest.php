@@ -8,24 +8,24 @@ use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
 {
-	use RefreshDatabase;
+    use RefreshDatabase;
 
-	protected User $user;
-	protected array $loginData;
+    protected User $user;
+    protected array $loginData;
 
-	public function setUp(): void
-	{
-		parent::setUp();
+    public function setUp(): void
+    {
+        parent::setUp();
 
-		$this->user = User::factory()->create();
-		$this->loginData = [
+        $this->user = User::factory()->create();
+        $this->loginData = [
             'email' => $this->user->email,
             'password' => 'password123',
         ];
-	}
+    }
 
-	public function testIfUserCanLoginWithValidCredentials()
-	{
+    public function testIfUserCanLoginWithValidCredentials()
+    {
         $response = $this->postJson('/api/auth/login', $this->loginData);
 
         $response->assertStatus(200)
@@ -36,10 +36,10 @@ class AuthenticationTest extends TestCase
                 ]);
 
         $this->assertArrayHasKey('access_token', $response->json());
-	}
+    }
 
-	public function testIfUserCantLoginWithInvalidCredentials()
-	{
+    public function testIfUserCantLoginWithInvalidCredentials()
+    {
         $wrongLoginData = [
             'email' => $this->user->email,
             'password' => 'wrongpassword',
@@ -49,55 +49,55 @@ class AuthenticationTest extends TestCase
 
         $response->assertStatus(401)
                 ->assertJson(['error' => 'Unauthorized']);
-	}
+    }
 
-	public function testIfUserCanLogoutWhenAreAuthenticated()
-	{
+    public function testIfUserCanLogoutWhenAreAuthenticated()
+    {
         $response = $this->postJson('/api/auth/login', $this->loginData);
-		$authData = json_decode($response->getContent());
+        $authData = json_decode($response->getContent());
 
-		$logedOut = $this->withHeaders([
-			'Authorization' => "Bearer $authData->access_token",
-		])->post('/api/logout');
+        $logedOut = $this->withHeaders([
+            'Authorization' => "Bearer $authData->access_token",
+        ])->post('/api/logout');
 
-		$logedOut->assertStatus(200)
-			->assertJson(['message' => 'Successfully logged out']);
-	}
+        $logedOut->assertStatus(200)
+            ->assertJson(['message' => 'Successfully logged out']);
+    }
 
-	public function testIfUserCantLogoutWhenAreUnauthenticated()
-	{
-		$logedOut = $this->withHeaders([
-			'Authorization' => "Bearer xxx",
-		])->postJson('/api/logout');
+    public function testIfUserCantLogoutWhenAreUnauthenticated()
+    {
+        $logedOut = $this->withHeaders([
+            'Authorization' => "Bearer xxx",
+        ])->postJson('/api/logout');
 
         $logedOut->assertStatus(401)
                 ->assertJson(['message' => 'Unauthenticated.']);
-	}
+    }
 
-	public function testIfUserCanGetYourDataWhenAreAuthenticated()
-	{
+    public function testIfUserCanGetYourDataWhenAreAuthenticated()
+    {
         $response = $this->postJson('/api/auth/login', $this->loginData);
-		$authData = json_decode($response->getContent());
+        $authData = json_decode($response->getContent());
 
-		$logedOut = $this->withHeaders([
-			'Authorization' => "Bearer $authData->access_token",
-		])->get('/api/me');
-		
-		$logedOut->assertStatus(200)
-			->assertJson([
-				'id' => $this->user->id,
-				'name' => $this->user->name,
-				'email' => $this->user->email
-			]);
-	}
+        $logedOut = $this->withHeaders([
+            'Authorization' => "Bearer $authData->access_token",
+        ])->get('/api/me');
 
-	public function testIfUserCantGetYourDataWhenAreUnauthenticated()
-	{
-		$logedOut = $this->withHeaders([
-			'Authorization' => "Bearer xxx",
-		])->getJson('/api/me');
-		
-		$logedOut->assertStatus(401)
-			->assertJson(['message' => 'Unauthenticated.']);
-	}
+        $logedOut->assertStatus(200)
+            ->assertJson([
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+                'email' => $this->user->email
+            ]);
+    }
+
+    public function testIfUserCantGetYourDataWhenAreUnauthenticated()
+    {
+        $logedOut = $this->withHeaders([
+            'Authorization' => "Bearer xxx",
+        ])->getJson('/api/me');
+
+        $logedOut->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated.']);
+    }
 }

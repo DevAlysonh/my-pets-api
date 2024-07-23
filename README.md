@@ -1,66 +1,210 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## My Pet API.
+Uma simples API que permite que usuários cadastrados e autenticados via JWT, cadastrem informações sobre seus pets.
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+### Setup:
 
-## About Laravel
+Este projeto utiliza o Docker para lidar com containers. Portanto o único requisito fundamental é que você tenha o docker instalado antes de fazer o clone do repositório.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+#### 1 Passo - Faça um clone do repositório na sua máquina:
+```
+ git clone git@github.com:DevAlysonh/my-pets-api.git
+```
+#### 2 Passo - Copie os arquivos de configuração (.env):
+```
+cp .env.example .env
+cp .env.example .env.testing
+```
+#### 3 Passo - Adicione as credenciais de acesso ao banco, nos dois arquivos, conforme a seguir:
+##### .env:
+```
+DB_CONNECTION=mysql
+DB_HOST=pets-db
+DB_PORT=3306
+DB_DATABASE=my_pets
+DB_USERNAME=root
+DB_PASSWORD=rootsecret
+```
+##### .env.testing:
+```
+DB_CONNECTION=mysql
+DB_HOST=pets-db
+DB_PORT=3306
+DB_DATABASE=my_pets_testing
+DB_USERNAME=root
+DB_PASSWORD=rootsecret
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+#### 4 Passo - Faça o build da aplicação:
+```
+docker-compose up -d --build
+```
+Se tudo ocorreu bem até aqui, os containers devem estar UP, e você pode seguir para o próximo passo.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+#### 5 Passo - Instale as dependências do projeto, e rode as migrations:
+```
+docker exec -it pets-api composer install
+```
+```
+docker exec -it pets-api php artisan key:generate
+```
+```
+docker exec -it pets-api php artisan migrate
+```
+```
+docker exec -it pets-api php artisan jwt:secret
+```
+```
+docker exec -it pets-api php artisan jwt:secret --env=testing
+```
 
-## Learning Laravel
+Se tudo ocorreu bem, nossa aplicação deve estar disponível em: http://localhost:80/api/ . E a documentação com swagger disponível em: http://localhost/api/documentation#/
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Utilizando a API
+### Autenticação:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+#### /api/auth/register
+#### Método: POST
+Este endpoint permite cadastrar um novo usuário.
+##### Campos obrigatórios:
+```
+{
+  "name": "string",
+  "email": "user@example.com",
+  "password": "string",
+  "password_confirmation": "string"
+}
+```
+Ao criar um novo registro de usuário, uma instancia do usuário já autenticada é devolvida na sessão, junto com o JWT Token, portanto, ao registrar o usuário, o restante da API já está disponível.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+#### /api/auth/login
+#### Método: POST
+Este endpoint permite que um usuário cadastrado faça login na aplicação.
+##### Campos obrigatórios:
+```
+{
+  "email": "user@example.com",
+  "password": "string",
+}
+```
+Quando logado, um JWT token é retornado, permitindo que o usuário faça outras requisições à API. Se as credenciais falharem, um erro com status 401 será retornado, indicando que o usuário não tem autorização para logar.
 
-## Laravel Sponsors
+#### /api/me
+#### Método: GET
+Este endpoint retorna o usuário autenticado na sessao.
+##### Exemplo de resposta:
+```
+{
+    "id": 2,
+    "name": "Test User",
+    "email": "testUser@example.com",
+    "email_verified_at": null,
+    "created_at": "2024-07-23T04:26:43.000000Z",
+    "updated_at": "2024-07-23T04:26:43.000000Z"
+}
+```
+Se não houver usuário logado, um erro 401 será retornado indicando não autorizado.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+#### /api/logout
+#### Método: POST
+Este endpoint encerra a sessão do usuário.
+Se não houver usuário logado, um erro 401 será retornado indicando não autorizado.
 
-### Premium Partners
+#### /api/refresh
+#### Método: POST
+Este endpoint atualiza a sessão do usuário, gerando um novo token de autenticação, caso o dele esteja vencido, ou perto de vencer.
+##### Exemplo de resposta:
+```
+{
+    "access_token": "jwtToken.....",
+    "token_type": "bearer",
+    "expires_in": 3600
+}
+```
+Se não houver usuário logado, um erro 401 será retornado indicando não autorizado.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### Gerenciando Pets:
 
-## Contributing
+#### /api/pets/my_pets
+#### Método: GET
+Este endpoint retorna uma lista de animais de estimação do usuário autenticado.
+##### Exemplo de resposta:
+```
+{
+    "user_pets": [
+        {
+            "id": 2,
+            "name": "Luna",
+            "age": 5,
+            "user_id": 2,
+            "breed_id": 2,
+            "specie_id": 1,
+            "created_at": "2024-07-23T04:27:06.000000Z",
+            "updated_at": "2024-07-23T04:27:06.000000Z"
+        },
+        {
+            "id": 6,
+            "name": "rock",
+            "age": 5,
+            "user_id": 2,
+            "breed_id": 2,
+            "specie_id": 1,
+            "created_at": "2024-07-23T05:20:35.000000Z",
+            "updated_at": "2024-07-23T05:20:35.000000Z"
+        },
+        {
+            "id": 7,
+            "name": "nasha",
+            "age": 5,
+            "user_id": 2,
+            "breed_id": 2,
+            "specie_id": 1,
+            "created_at": "2024-07-23T05:20:41.000000Z",
+            "updated_at": "2024-07-23T05:20:41.000000Z"
+        }
+    ]
+}
+```
+Se não houver usuário logado, um erro 401 será retornado indicando não autorizado. Se o usuário autenticado não tiver nenhum animal cadastrado, será retornado um erro 404, indicando que nenhum dado foi encontrado.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+#### /api/pets/
+#### Método: POST
+Este endpoint permite cadastrar um novo pet.
+##### Campos obrigatórios:
+```
+{
+  "name": "string",
+  "age": "string",
+  "breed": "string",
+  "specie": "string"
+}
+```
+Se não houver usuário logado, um erro 401 será retornado indicando não autorizado.
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### /api/pets/{petId}
+#### Método: GET
+Este endpoint permite buscar um pet do cliente, e exibir o perfil do mesmo.
+##### Campos obrigatórios:
+```
+{
+    "name": "Luna",
+    "age": 5,
+    "owner": {
+        "id": 2,
+        "name": "Test User"
+    },
+    "breed": {
+        "id": 2,
+        "name": "rotweiller",
+        "specie_id": 1,
+        "created_at": "2024-07-23T04:27:06.000000Z",
+        "updated_at": "2024-07-23T04:27:06.000000Z"
+    },
+    "specie": {
+        "id": 1,
+        "name": "cachorro",
+        "created_at": "2024-07-23T04:09:41.000000Z",
+        "updated_at": "2024-07-23T04:09:41.000000Z"
+    }
+}
+```
+Se não houver usuário logado, um erro 401 será retornado indicando não autorizado. Se o usuário tentar acessar um animal inexistente, um erro 404 será retornado indicando que nada foi encontrado. Se o usuário tentar acessar um animal que não o pertence, um erro 401 será retornado, indicando não autorizado.

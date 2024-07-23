@@ -13,7 +13,6 @@ class Specie extends Model
 
     protected $fillable = [
         'name',
-        'origin'
     ];
 
     public function pets(): HasMany

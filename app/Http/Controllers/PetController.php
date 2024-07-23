@@ -38,9 +38,16 @@ class PetController extends Controller
         ], 201);
     }
 
-    public function show(string $id)
+    public function show(string $petId)
     {
-        //
+        try {
+            $pet = $this->petService->getPetProfile($petId);
+            return response()->json($pet, 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 404);
+        }
     }
 
     public function edit(string $id)

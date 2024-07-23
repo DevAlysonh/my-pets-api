@@ -36,6 +36,27 @@ class PetService
         return $userPets;
     }
 
+    public function getPetProfile(string $petId): array
+    {
+        $pet = Pet::find($petId);
+
+        if (!$pet) {
+            throw new Exception('O animal que você está procurando não existe, ou foi removido.');
+        }
+
+        if (auth()->user()->cannot('view', $pet)) {
+            abort(401, 'O animal que você está tentando visualizar, não pertence a você.');
+        }
+
+        return [
+            'name'   => $pet->name,
+            'age'    => $pet->age,
+            'owner'  => $pet->user->only('id', 'name'),
+            'breed'  => $pet->breed,
+            'specie' => $pet->specie
+        ];
+    }
+
     private function buildNewPetData(array $apiData): array
     {
         $specie =  Specie::where('name', $apiData['specie'])->first();

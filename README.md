@@ -48,7 +48,13 @@ docker exec -it pets-api composer install
 docker exec -it pets-api php artisan key:generate
 ```
 ```
+docker exec -it pets-api php artisan key:generate --env=testing
+```
+```
 docker exec -it pets-api php artisan migrate
+```
+```
+docker exec -it pets-api php artisan migrate --env=testing
 ```
 ```
 docker exec -it pets-api php artisan jwt:secret

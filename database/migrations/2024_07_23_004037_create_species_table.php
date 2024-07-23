@@ -12,8 +12,7 @@ return new class () extends Migration {
     {
         Schema::create('species', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 80)->nullable(false);
-            $table->string('origin', 80)->nullable(false);
+            $table->string('name', 80)->nullable(false)->unique();
             $table->timestamps();
         });
     }

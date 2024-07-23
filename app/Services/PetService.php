@@ -29,7 +29,7 @@ class PetService
     {
         $userPets = auth()->user()->pets;
 
-		if (empty($userPets->items)) {
+        if (empty($userPets->items)) {
             throw new Exception('Você ainda não tem nenhum animal de estimação cadastrado.');
         }
 

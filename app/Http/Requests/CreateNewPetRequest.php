@@ -23,19 +23,19 @@ class CreateNewPetRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:80',
-			'age' => 'required|string',
-			'breed' => 'required|string|max:80',
-			'specie' => 'required|string|max:80',
+            'age' => 'required|string',
+            'breed' => 'required|string|max:80',
+            'specie' => 'required|string|max:80',
         ];
     }
 
-	public function messages(): array
-	{
-		return [
-			'name.required' => 'O nome é obrigatório.',
-			'age.required' => 'A idade é obrigatória.',
-			'breed.required' => 'A raça é obrigatória.',
-			'specie.required' => 'A espécie é obrigatória.',
-		];
-	}
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'O nome é obrigatório.',
+            'age.required' => 'A idade é obrigatória.',
+            'breed.required' => 'A raça é obrigatória.',
+            'specie.required' => 'A espécie é obrigatória.',
+        ];
+    }
 }

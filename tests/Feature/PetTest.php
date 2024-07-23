@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class PetTest extends TestCase
 {
-	use RefreshDatabase;
+    use RefreshDatabase;
 
     protected User $user;
     protected string $token;
@@ -21,90 +21,90 @@ class PetTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create();
-		$response = json_decode($this->postJson('/api/auth/login', [
-			'email' => $this->user->email,
-			'password' => 'password123'
-		])->getContent(), true);
+        $response = json_decode($this->postJson('/api/auth/login', [
+            'email' => $this->user->email,
+            'password' => 'password123'
+        ])->getContent(), true);
 
-		$this->token = $response['access_token'];
+        $this->token = $response['access_token'];
     }
 
-	public function testIfAnUserCantListYourPetsBeforeStoreSomePet(): void
-	{
-		$response = $this->withHeaders([
+    public function testIfAnUserCantListYourPetsBeforeStoreSomePet(): void
+    {
+        $response = $this->withHeaders([
             'Authorization' => "Bearer {$this->token}",
         ])->get('/api/pets/my_pets');
 
-		$response->assertStatus(404)
-			->assertJson(['message' => 'Você ainda não tem nenhum animal de estimação cadastrado.']);
-	}
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'Você ainda não tem nenhum animal de estimação cadastrado.']);
+    }
 
-	public function testIfAnUserCanCreateAPet(): void
-	{
-		$petData = [
-			'name' => 'trovao',
-			'age' => '6',
-			'breed' => 'pastor alemao',
-			'specie' => 'cachorro'
-		];
+    public function testIfAnUserCanCreateAPet(): void
+    {
+        $petData = [
+            'name' => 'trovao',
+            'age' => '6',
+            'breed' => 'pastor alemao',
+            'specie' => 'cachorro'
+        ];
 
-		$response = $this->withHeaders([
+        $response = $this->withHeaders([
             'Authorization' => "Bearer {$this->token}",
         ])->post('/api/pets', $petData);
 
-		$response->assertStatus(201)
-			->assertJson(['message' => "Your Pet has been created successfully."]);
-	}
+        $response->assertStatus(201)
+            ->assertJson(['message' => "Your Pet has been created successfully."]);
+    }
 
-	public function testIfAnUserCanSeeYourPet(): void
-	{
-		$petData = [
-			'name' => 'trovao',
-			'age' => '6',
-			'breed' => 'pastor alemao',
-			'specie' => 'cachorro'
-		];
+    public function testIfAnUserCanSeeYourPet(): void
+    {
+        $petData = [
+            'name' => 'trovao',
+            'age' => '6',
+            'breed' => 'pastor alemao',
+            'specie' => 'cachorro'
+        ];
 
-		$this->withHeaders([
+        $this->withHeaders([
             'Authorization' => "Bearer {$this->token}",
         ])->post('/api/pets', $petData);
 
-		$response = $this->withHeaders([
+        $response = $this->withHeaders([
             'Authorization' => "Bearer {$this->token}",
         ])->get('/api/pets/2');
 
-		$response->assertStatus(200);
-	}
+        $response->assertStatus(200);
+    }
 
-	public function testIfAnUserCantSeeAMissedPet(): void
-	{
-		$response = $this->withHeaders([
+    public function testIfAnUserCantSeeAMissedPet(): void
+    {
+        $response = $this->withHeaders([
             'Authorization' => "Bearer {$this->token}",
         ])->get('/api/pets/2');
 
-		$response->assertStatus(404)
-			->assertJson(['message' => 'O animal que você está procurando não existe, ou foi removido.']);
-	}
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'O animal que você está procurando não existe, ou foi removido.']);
+    }
 
-	public function testIfAnUserCantSeeAnotherUsersPet(): void
-	{
-		$userTwo = User::factory()->state(['email' => 'test222@gmail.com'])->create();
-		$specie  = Specie::create(['name' => 'cachorro']);
-		$breed   = Breed::create(['name' => 'pinsher', 'specie_id' => $specie->id]);
+    public function testIfAnUserCantSeeAnotherUsersPet(): void
+    {
+        $userTwo = User::factory()->state(['email' => 'test222@gmail.com'])->create();
+        $specie  = Specie::create(['name' => 'cachorro']);
+        $breed   = Breed::create(['name' => 'pinsher', 'specie_id' => $specie->id]);
 
-		$pet = Pet::create([
-			'name' => 'Tom',
-			'age' => 2,
-			'user_id' => $userTwo->id,
-			'specie_id' => $specie->id,
-			'breed_id'  => $breed->id
-		]);
+        $pet = Pet::create([
+            'name' => 'Tom',
+            'age' => 2,
+            'user_id' => $userTwo->id,
+            'specie_id' => $specie->id,
+            'breed_id'  => $breed->id
+        ]);
 
-		$response = $this->withHeaders([
+        $response = $this->withHeaders([
             'Authorization' => "Bearer {$this->token}",
         ])->get('/api/pets/' . $pet->id);
 
-		$response->assertStatus(404)
-			->assertJson(['message' => 'O animal que você está tentando visualizar, não pertence a você.']);
-	}
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'O animal que você está tentando visualizar, não pertence a você.']);
+    }
 }

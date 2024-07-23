@@ -134,7 +134,7 @@ class AuthController extends Controller
     *     ),
     *     @OA\Response(
     *         response=401,
-    *         description="Unauthorized",
+    *         description="Unauthenticated",
     *  	   	  @OA\MediaType(
     *      	  	mediaType="application/json",
     *     	  )

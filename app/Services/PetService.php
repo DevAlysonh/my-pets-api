@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\Pet;
 use App\Models\Pet\Breed;
 use App\Models\Pet\Specie;
-use Exception;
 use Illuminate\Database\Eloquent\Collection;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PetService
 {
@@ -29,8 +29,8 @@ class PetService
     {
         $userPets = auth()->user()->pets;
 
-		if (empty($userPets->items)) {
-            throw new Exception('Você ainda não tem nenhum animal de estimação cadastrado.');
+        if ($userPets->isEmpty()) {
+            throw new NotFoundHttpException('Você ainda não tem nenhum animal de estimação cadastrado.');
         }
 
         return $userPets;
@@ -41,7 +41,7 @@ class PetService
         $pet = Pet::find($petId);
 
         if (!$pet) {
-            throw new Exception('O animal que você está procurando não existe, ou foi removido.');
+            throw new NotFoundHttpException('O animal que você está procurando não existe, ou foi removido.');
         }
 
         if (auth()->user()->cannot('view', $pet)) {

@@ -18,6 +18,6 @@ Route::middleware('auth:api')->group(function () {
 Route::controller(PetController::class)->middleware('auth:api')
     ->group(function () {
         Route::post('pets', 'store');
-        Route::get('pets/my_pets', 'index');
+        Route::get('pets/my_pets', 'listUserPets');
         Route::get('pets/{petId}', 'show');
     });

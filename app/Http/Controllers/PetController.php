@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateNewPetRequest;
 use App\Services\PetService;
-use Exception;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PetController extends Controller
 {
@@ -34,14 +34,21 @@ class PetController extends Controller
     *      	  	mediaType="application/json",
     *     	  )
     *     ),
+    *     @OA\Response(
+    *         response=404,
+    *         description="Pet not found",
+    *  	   	  @OA\MediaType(
+    *      	  	mediaType="application/json",
+    *     	  )
+    *     )
     * )
     */
-    public function index()
+    public function listUserPets()
     {
         try {
             $pets = $this->petService->getAllUserPets();
             return response()->json(['user_pets' => $pets], 200);
-        } catch (Exception $e) {
+        } catch (NotFoundHttpException $e) {
             return response()->json([
                 'message' => $e->getMessage()
             ], 404);
@@ -134,7 +141,7 @@ class PetController extends Controller
     *     ),
     *     @OA\Response(
     *         response=401,
-    *         description="Unauthenticated",
+    *         description="Unauthenticated or unauthorized when a user try to see an animal that isn't yours",
     *  	   	  @OA\MediaType(
     *      	  	mediaType="application/json",
     *     	  )
@@ -153,7 +160,7 @@ class PetController extends Controller
         try {
             $pet = $this->petService->getPetProfile($petId);
             return response()->json($pet, 200);
-        } catch (Exception $e) {
+        } catch (NotFoundHttpException $e) {
             return response()->json([
                 'message' => $e->getMessage()
             ], 404);
